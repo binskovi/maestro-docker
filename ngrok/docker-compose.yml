@@ -1,0 +1,15 @@
+version: "3.9"
+
+services:
+  frontend:
+    build:
+      context: "../apps/dwg-web"
+    ports:
+      - "8888:80"  
+  ngrok:
+    image: wernight/ngrok
+    volumes:
+      - ./ngrok.yml:/home/ngrok/.ngrok2/ngrok.yml
+    ports:
+      - "4040:4040"
+    command: ["ngrok", "http", "frontend:80"]
