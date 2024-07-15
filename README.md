@@ -90,9 +90,22 @@ docker image ls
 docker push USERNAME/dwg-web:1.0
 docker push USERNAME/dwg-web:2.0
 ```
-
-
-
+### Komunikacja kontenerów
+docker network create -d bridge wp – tworzy nową sieć kontenerową
+–network=wp – przy uruchamianiu kontenera musi wskazać, aby korzystał z tej sieci
+–restart=always – kontener będzie restartowany za każdym razem, nawet przy restarcie dockera czy komputera
+docker-compose.yml – plik konfiguracyjny docker compose (uruchamianie wielu kontenerów naraz)
+```
+docker compose up -d  // uruchomienie obrazu za pomocą pliku yml
+docker volume ls
+docker compose down   // zatrzymanie kontenerów
+docker compose up -d
+docker compose logs   // logi kontenerów
+docker compose logs db   // logi tylko kontenera bazy danych
+docker compose ps
+docker compose down -v  // usuń wszystko, sieć i volumeny.
+```
+docker compose down -v – zatrzyma nam wszystkie kontenery z compose oraz usunie wszystko, co było stworzone na potrzeby ich uruchomienia (np. sieć)
 
 
 
