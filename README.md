@@ -116,13 +116,22 @@ W roku 2006 Google zaprezentowało Control Groups, mechanizm do przydzielania i 
 W 2008 cgroup zostało włącozne do Linux Kernel, dzięki czemu powstałnowy projekt o nazwie LinuX Containers - LXC.
 Były to pierwsze pełnoprawne kontenery, wykorzystują mechanizm cgroups oraz Linux namespaces, kontener posiada odizolowane drzewo procesów, sieci i przestrzeni dyskowej.
 W 2013 roku narodizny Dockera, zostałzaprezentowany przez założyciela frmy dotCloud. Początkowo wykorzystywał kontenery LXC, dopiero w 2014 roku zastąpił je własnym rozwiązaniem - libcontainer.
+Twórcą Dockera jest Solomon Hykes.
 ### Czym jest Docker i dlaczego jest tak popularny
 Docker jest narzędziem do uruchamiania kontenerów, jest to narzędzie Open-Source, pakuje aplikację do kontenera. Można je przenosić na różne systemy operacyjne.
 Głównym zamysłem Dockera jest uruchamianie aplikacji czy usług w kontenerach i wyizolowanie aplikacji niezlaeżnie od tego w jakim systemie się zanjduje. Przycznił się mocno do przyspieszenia wdrażania aplikacji na wiele środowisk.
-
-
-
-
+### Podstawowe definicje: obraz, kontener, Docker Hub
+Kontener - paczka zawierajaca aplikację i jej zależności, kontenery są od siebie odizolowane
+Różnice Obraz vs Kontener - Obraz to inaczej szablon na jakiej podstawie zostanie stworzony kontener a kontener to jakby działająca instancja obrazu.
+Docker Hub - centralne miejsce przechowujące bazowe obrazy, możemy też tam przechowywać swoje obrazy
+### Aplikacja w kontenerze vs aplikacja w wirtualnej maszynie
+Kontenerowi nie musimy na sztywno przypisywać zasobów sprzętowych, pozwala nam to na uruchomienie znacznie większej ilości kontenerów niż moglibyśmy uruchomić maszyn wirtualnych. Porównanie Domu jako Maszyny wirtualnej która musi mieć wszystko dla siebie na stałe, do mieszkania jako kontenera w bloku gdzie niektóre elementy są współdzielone ale jest zachowana pewna odrębność.
+### Docker na różnych systemach operacyjnych
+Docker dla Linuxa jest najbardizej stabilny. 
+Docker Desktop for Windows
+Docker Desktop for Mac
+### Kontenery Linux i Windows
+Kontenery to linux, Microsoft z czasem wproadził kontenery Windowsowe. Kontenery Linuxowe mogą działać na Windowsie ale nie odwrotnie.
 
 
 
