@@ -165,7 +165,7 @@ Aby wejść do kontenera, czyli wykonaj polecenie na działajacym kontenerze (-i
 ```
 docker container exec -it <nazwa> bash
 ```
-### Uruchamianie usług
+### Uruchamianie usług w kontenerze
 
 Pobranie obrazu jaki określimy
 ```
@@ -202,13 +202,67 @@ Aby wystartować kontener:
 docker container start nginx2
 curl localhost:8081
 ```
+### Czyszczenie środowiska
+Zatrzymywanie i usuwanie pojedynczych kontenerów
+```
+docker container stop <id_lub_nazwa_kontenera>
+docker container rm <id_lub_nazwa_kontenera>
+```
+Zatrzymanie wszystkich działających w danej chwili kontenerów
+```
+docker container stop $(docker container ls -q) // <- wstrzyknięcie id kontenerów które działajaobecnie
+```
+Usuwanie wszystkich kontenerów
+UWAGA: trwale usuwa wszystkie kontenery – zarówno działające jak i zatrzymane. Stosuj z rozwagą!
+opcja --force wymusza usunięcie kontenerów, bez tej flagi napierw należy zatrzymać kontenery przed usunięciem
+-aq -> oznacza wszysktie
+```
+docker container rm $(docker container ls -aq) --force
+```
+### Container Run Deep Dive
+Co dzieje się po wpisaniu ponizszej instrukcji?
+Na początku sprawdzamy czy obraz istenieje lokalnie, jeśli nie to poszukaj go w zdalnym repozytorium.
+Następnie sprawdza czy obraz istnieje w repozytorium jeśli tak to pobierz go, rozpakuj i zapisz lokalnie
+Potem tworzony jest kontener i trwa przygotowanie do uruchomienia, kontener otrzymuje wirtualny adres IP w prywatnej sieci Dockera,
+Dostaje sygnał, że ruch z portu 80 kontenera będzie przekeirowany na port 8080 na hoście.
+W ostatnej fazie kontener startuje z pomocą instukcji CMD która jest określona w pliku Dockerfile (Zbiór poleceń służących do zdefiniowania obrazu)
+nginx -T <- nadpisanie z linii poleceń instrukcji CMD, czyli np zamiast uruchomienia serwera www zostanie wyswietlona tylko jego konfiguracja
+```
+docker container run -d -p 8080:80 --name mynginx nginx:latest nginx -T
+```
+```
+docker container ls
+docker container logs <id_lub_nazwa_kontenera>
+```
+### Kontener czyli proces
 
+Wewnątrz kontenera działa tylko jeden główny proces, taka jest rekomendacja. Procesy w kontenerze nie różnią się niczym od procesów na hoście (poza metadanymi mówiącymi że jest proces w kontenerze). Procesy kontenera domyślnie są odizolowane od innych procesów na hoście i kontenerów (można to zmienić)
 
+Przykład 1
+```
+docker container run ubuntu
+docker container ls
+docker container run -itd --name myubuntu ubuntu:latest bash
+docker container ls
+```
+Uruchomiony proces w kontenerze widnieje bezpośrednio jako proces na systemie hosta
+Sprawdzenie procesów działających w kontenerze, inaczej kolumna PID
+```
+docker container top myubuntu
 
+ps -aux | grep <PID HERE>
+ps -aux | grep bash
+```
+Przykład 2
+```
+docker container run -d --name mymongo mongo:latest
+docker container top mymongo
 
-### Uruchamianie usług w kontenerze
+ps -aux | grep mongo
 
-
+docker exec -it mymongo bash
+ps -aux   // lista wszystkich procesów
+```
 
 
 
