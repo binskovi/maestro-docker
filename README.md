@@ -127,12 +127,86 @@ Docker Hub - centralne miejsce przechowujące bazowe obrazy, możemy też tam pr
 ### Aplikacja w kontenerze vs aplikacja w wirtualnej maszynie
 Kontenerowi nie musimy na sztywno przypisywać zasobów sprzętowych, pozwala nam to na uruchomienie znacznie większej ilości kontenerów niż moglibyśmy uruchomić maszyn wirtualnych. Porównanie Domu jako Maszyny wirtualnej która musi mieć wszystko dla siebie na stałe, do mieszkania jako kontenera w bloku gdzie niektóre elementy są współdzielone ale jest zachowana pewna odrębność.
 ### Docker na różnych systemach operacyjnych
-Docker dla Linuxa jest najbardizej stabilny. 
+Docker dla Linuxa jest najbardizej stabilny.
 Docker Desktop for Windows
 Docker Desktop for Mac
 ### Kontenery Linux i Windows
 Kontenery to linux, Microsoft z czasem wproadził kontenery Windowsowe. Kontenery Linuxowe mogą działać na Windowsie ale nie odwrotnie.
 
+## Moduł 02 : Uruchamianie kontenerów
+### Pierwszy kontener
+
+Utoworzenie kontenera z nazwie obrazu hello-world
+```
+docker container run hello-world
+```
+Utworzenie kontenera będzie się opierać o obraz Ubuntu, 'latest' inaczej tag obrazu, oznacza najnowsza wersja tego obrazu
+```
+docker container run ubuntu:latest
+```
+Polecenie wyświetla wszystkie istniejaće kontenery, z flagą -l wyświetli wszystkie które były uruchomione wcześniej i zatrzymane
+```
+docker container ls -a
+```
+Po uruchomieniu kontenera otrzymujemy również listę kontenerów
+```
+docker container run ubuntu:latest ls -l
+```
+Chcę aby kontener był uruchomiony w trybie interaktywnym -it, mogę przekazać ddatkowy argument i przekazać listę strumieni z kontenera na lokalny terminal. Flaga -d oznacza, że chce aby kontener działał w tle. 'bash' wskazuje jako proces kontenera. Flagi spowodowały uruchomienie procesu bash.
+```
+docker container run -it ubuntu:latest bash
+docker container run -it -d ubuntu:latest bash
+```
+Sprawdzamy stan kontenerów:
+```
+docker container ls
+```
+Aby wejść do kontenera, czyli wykonaj polecenie na działajacym kontenerze (-it tryb interaktywny), zamiast nazwy można też podać ID lub pierwsze trzy znaki ID kontenera
+```
+docker container exec -it <nazwa> bash
+```
+### Uruchamianie usług
+
+Pobranie obrazu jaki określimy
+```
+docker image pull nginx:latest
+```
+
+
+Nginx - uruchomienie kontenera,
+[-d w tle]
+[-p przekieorwnaie ruchu z kontenera z portu 8080 na 80]
+[--name mynginx - ustawiamy nazwę kontenera na mynginx]
+```
+docker container run -d -p 8080:80 --name mynginx nginx:latest
+curl localhost:8080
+```
+
+PostgreSQL - najpierw ściagamy obraz
+[-e - ustawia nam zmienną środowiskową]
+[-p - przekieorwanie portu z 5444 na 5432]
+obraz wymaga podania użytkownika i hasła
+```
+docker image pull postgres
+docker container run -d -e POSTGRES_USER=user1 -e POSTGRES_PASSWORD=pass123 -p 5444:5432 postgres
+```
+
+Nginx - tworzenie i start kontenera
+[create - tworzenie kontenera bez uruchamiania]
+```
+docker container create -p 8081:80 --name nginx2 nginx:latest
+docker container ls -a
+```
+Aby wystartować kontener:
+```
+docker container start nginx2
+curl localhost:8081
+```
+
+
+
+
+### Uruchamianie usług w kontenerze
 
 
 
