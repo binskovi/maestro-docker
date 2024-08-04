@@ -263,15 +263,74 @@ ps -aux | grep mongo
 docker exec -it mymongo bash
 ps -aux   // lista wszystkich procesów
 ```
+### Inspekcja kontenera
 
+Podgląd konfiguracji ontenera, stanu zużycia zasobów oraz przeglądanie logów (docker container inspect, docker container stats, docker container logs)
+Do sprawdzenia konfiguracji kontenera używay polecenia:
+```
+docker container inspect
+```
+Logi kontenera sprawdzamy poleceniem:
+```
+docker container logs
+```
+Zużycie zasobów kontenera poleceniem:
+```
+docker container stats
+```
+Przykłady:
+Tworzymy kontener: alpine. -e: zmienna środowiskowa, -it: tryb interaktywny, sh to jest to samo co bash czyli shell
+Następnie sprawdzamy jego konfigurację, otrzymujemy w formacie json
+```
+docker cotainer create -e TEST_ENV=test -it --name myalpine1 alpine:latest sh
+docker container inspect myalpine1
+```
+Możemy parametryzować t oco chcemy zoabczyć:
+```
+docker container inspect --format='{{.Config.Image}}' myalpine1  // nazwa obrazu
+docker container inspect --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' alpine1  // sprawdza przypisany IP
+```
 
+Sprawdzamy logi kontenera ngnix:
+```
+docker container run -d -p 8088:80 --name mynginx1 nginx
+docker container logs <container_name>
+```
+Możemy podglądać logi na żywo:
+```
+docker container logs -f <nazwa_kontenera> 
+```
 
+Sprawdzamy stan zużycia zasobów:
+```
+docker container stats <nazwa_kontenera>
+docker container stats --no-stream <nazwa_kontenera>
+```
+### Uruchamianie usług – poziom 2
+Apache
+```
+docker container run --rm -d --name myapache -p 8000:80 httpd:2.4
+curl localhost:8000 // sprawdzamy czy odpowiada
+docker container ls
+```
 
-
-
-
-
-
+MySql, flaga --restart always spowoduje automatyczny restart kontenera w przypadku błędu, ta flaga nie spowoduje restartu w przypadku świadomego zakończenia działania kontenera.
+```
+docker container run --name db -e MYSQL_ROOT_PASSWORD=mysecret-password --restart always -d -p 3306:3306 mysql:5.7
+```
+Wyświetlenie logów
+```
+docker container logs db
+```
+Zatrzymanie wszystkich kontenerów
+```
+docker container stop $(docker container ls -a -q) // wszystkie działające
+```
+Ponowne uruchomienie kontenera
+```
+docker container start db
+docker container ls
+```
 
 
 
