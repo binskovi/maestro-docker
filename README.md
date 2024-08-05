@@ -331,6 +331,57 @@ Ponowne uruchomienie kontenera
 docker container start db
 docker container ls
 ```
-
-
-
+## Moduł 03 : Praca z obrazami
+### Docker Hub i repozytoria
+https://hub.docker.com
+Docker Hub to domyślne miejsce z którym łączy się Docker po wpisaniu komendy `docker image pull`. Możemy tam założyć konto oraz dodawać swoje obrazy publiczne lub prywatne. Oficjalne repo obrazów. Ważne aby zwrócić uwagę czy obraz posiada etykietę Oficialny.
+```
+docker image pull alpine:3.7
+docker image pull alpine:3.6
+```
+### Tagowanie i publikowanie obrazów na Docker Hub
+Aby publikować swoje obrazy musimy stworzyc sobie konto na DockerHub
+Zadanie:
+Dodaj nowy tag do obrazu alpine:3.9
+```
+docker image pull alpine:3.9
+docker image tag alpine:3.9 <TWOJA_NAZWA_UŻYTKOWNIKA>/alpine:3.9
+docker image ls
+```
+Zaloguj się do Docker Huba za pomocą danych, które zostały podane podczas tworzenia konta na Docker Hub.
+```
+docker login
+```
+Opublikuj obraz na Docker Hub
+```
+docker image push <TWOJA_NAZWA_UŻYTKOWNIKA>/alpine:3.9
+```
+Usuń lokalny obraz i pobierz go z Docker Huba
+```
+docker image rm <TWOJA_NAZWA_UŻYTKOWNIKA>/alpine:3.9
+docker image rm alpine:3.9
+docker image ls
+docker image pull <TWOJA_NAZWA_UŻYTKOWNIKA>/alpine:3.9
+docker image ls
+```
+Uruchom kontener na podstawie własnego obrazu
+```
+docker container run -it <TWOJA_NAZWA_UŻYTKOWNIKA>/alpine:3.9 sh
+ls
+exit
+```
+Publikowanie innej wersji obrazu
+```
+docker image pull alpine:3.7
+docker image tag alpine:3.7 <TWOJA_NAZWA_UŻYTKOWNIKA>/alpine:3.7
+docker image push alpine:3.7
+```
+### Prywatne repozytoria
+Rozwiązania płatne
+Docker Hub Pricing https://hub.docker.com/subscription?plan=individual&paid=true
+Azure https://azure.microsoft.com/en-us/pricing/details/container-registry/
+AWS https://aws.amazon.com/ecr/pricing/
+GCP https://cloud.google.com/container-registry
+Rozwiązania darmowe
+Canister https://canister.io/
+Gitlab https://docs.gitlab.com/ee/user/packages/container_registry/index.html
