@@ -385,3 +385,47 @@ GCP https://cloud.google.com/container-registry
 Rozwiązania darmowe
 Canister https://canister.io/
 Gitlab https://docs.gitlab.com/ee/user/packages/container_registry/index.html
+
+### Dockerfile
+Utwórz plik o nazwie Dockerfile oraz plik text.txt.
+Zawartość pliku Dockerfile
+```
+FROM alpine:3.9
+COPY text.txt .
+CMD ["cat", "text.txt"]
+```
+Zawartość pliku text.txt
+```
+Docker Maestro
+```
+Uruchom terminal i przejdź do katalogu, w którym zostały utworzone pliki Dockerfile oraz text.txt
+```
+docker image build -t myalpine .   // budowanie obrazu i wersji -t , . - domyślny katalog
+docker container run --name alpine1 myalpine:latest
+```
+FROM - specyfikuje obraz bazowy. Cała zawartość obrazu trafia do finalnego obrazu
+RUN - pozwala na wykonanie dowolnego polecenia dostępnego w obrazie bazowym (apt-get, mkdir, ln itp.)
+COPY - kopiuje pliki lub katalogi z hosta, do określonej lokalizacji wewnatrz obrazu
+CMD - określa jaka komenda ma zostać wykonana po uruchomieniu kontenera na podstawie obrazu
+
+### Rozszerzenie oficjalnych obrazów
+Kopiowanie plików z kontenera
+```
+docker container run -d --name nginx1 nginx  // uruchomienie
+docker container cp nginx1:/usr/share/nginx/html/index.html index.html  // kopiowanie
+```
+Edytuj plik index.html za pomocą dowolnego edytora tekstu i zapisz zmiany.
+Tworzenie Dockerfile:
+Utwórz plik Dockerfile w tej samej lokalizacji, w której znajduje się plik index.html
+```
+FROM nginx:latest
+
+COPY index.html /usr/share/nginx/html
+```
+Aktualizacja 12.12.2022: Usuń komendę CMD ["nginx", "-g", "daemon off;"]
+Budowanie obrazu i uruchamianie kontenera
+```
+docker image build -t mynginx .
+docker container run -d -p 8081:80 --name mynginx mynginx:latest
+curl localhost:8081
+```
