@@ -429,3 +429,112 @@ docker image build -t mynginx .
 docker container run -d -p 8081:80 --name mynginx mynginx:latest
 curl localhost:8081
 ```
+### Budowanie własnego obrazu – czyli konteneryzacja aplikacji
+
+W wersji uproszczenej
+- Znajdujemy obraz bazowy
+- Ładujemy zależności
+- Kopiujemy kod źródłówy
+- Ustawiamy punkt startowy kontenera
+- Budujemy obraz z określoną wersją
+
+Dockerfile:
+```
+FROM node:17.7.2-buster-slim  <-- Obraz bazowy dla aplikacji
+WORKDIR /code  <-- Określenie katalogu bieżącego, do tego katalogu kopiujemy pliki
+COPY package.json package-lock.json /code/  <-- kopiujemy najpierw listę zależności
+RUN npm install   <-- instalujemy zależności
+COPY src /code/src  <-- Kopiujemy kod źródłowy
+EXPOSE 8080   <-- Aplikacja powinna działać na tym porcie
+CMD [ "npm", "start" ]  // punkt startowy, polecenie uruchamiajace.
+```
+Przejdź do katalogu /03/03.06 a następnie zbuduj obraz za pomocą polecenia:
+```
+docker image build -t myapp:1.0 .
+```
+Uruchomienie kontenera
+```
+docker container run -d -p 8081:8080 --name myapp1 myapp:1.0
+```
+Zmodyfikuj zawartość pliku src/server.js a następnie zbuduj obraz ponownie, ale z nową wersją:
+```
+docker image build -t myapp:2.0 .
+```
+Uruchom drugi kontener na podstawie obrazu myapp:2.0
+```
+docker container run -d -p 8082:8080 --name myapp2 myapp:2.0
+```
+
+### Warstwowa budowa obrazu
+manifest - plik konfiguracyjny obrazu
+FAT manifest - zbiór manifestów
+Od wersji Dockera 1.10 warstwy są hashowane za pomocą algorytmu SHA256
+W Docker Registry przechowywane jest archiwum powstałe po skompresowaniu plików danej warstwy
+Po pobraniu `docker image pull` archiwum jest rozpakowane
+```
+docker image pull ubuntu
+
+docker image inspect ubuntu
+
+docker image history ubuntu
+```
+Narzędzie do przeglądania zawartości warstw obrazów
+```
+docker run --rm -it -v /var/run/docker.sock:/var/run/docker.sock wagoodman/dive:latest ubuntu:latest
+```
+
+### Multi-stage builds
+
+Więcej niż jedna instrukcja `FROM`
+Zapewnia spójność niezależnie od lokalizacji gdzie obraz jest budowany (CI/CD vs lokalnie )
+Końcowy obraz jest lekki i nie posiada zbędnych plików / paczek powstałych podczas budowania wersji produkcyjnej
+
+Dockerfile z lekcji:
+```
+# Stage 1
+FROM node:17.7.2-buster-slim as development  // Określamy 1 etap Stage
+
+ARG NODE_ENV=production    // Wartość tego zostanie przekazana do zmiennej środowiskowej ENV
+ENV NODE_ENV $NODE_ENV
+
+WORKDIR /code
+COPY package.json package-lock.json /code/   // najpierw kopiujemy zależności
+RUN npm ci
+COPY src /code/src       // kopiujemy kod aplikacji
+COPY public /code/public
+
+CMD [ "npm", "start" ]   // Określamy pkt startowy tego Stage
+
+# Stage 2 - builder
+FROM development AS builder   // dziedziczy development z Stage 1 linijka 1, utwórz mi nowy stage o nazwie Builder
+
+RUN npm run build   // Budujemy app
+
+# Stage 3 - the production environment    // tworzenie finalnego obrazu
+FROM nginx:1.21.6 AS production    // obraz uruchiamiany z poziomu serera nginx
+COPY --from=builder /code/build /usr/share/nginx/html   // określamy z którego etapu chcemy skopiować (from=builder)
+
+CMD ["nginx", "-g", "daemon off;"]    // pkt startowy kontenera
+```
+
+Lekcje w katalogu /03/03.08/reactjs a następnie uruchom polecenie:
+```
+docker image build -t myreact:latest .
+```
+Po zbudowaniu obrazu uruchom kontener
+```
+docker container run -d -p 8082:80 --name react-prod  myreact:latest
+```
+Budowanie tylko konkretnego stage'a, nadpisujemy prod i dajemy dev
+```
+docker image build --target development --build-arg  NODE_ENV=development -t react-dev:latest .
+```
+Uruchomienie wersji developerskiej
+```
+docker run -d -p 3000:3000 --name react-dev react-dev:latest
+docker container ls
+```
+Podgląd konfiguracji obrazu
+```
+docker image inspect react-dev:latest
+```
