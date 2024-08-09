@@ -538,3 +538,71 @@ Podgląd konfiguracji obrazu
 ```
 docker image inspect react-dev:latest
 ```
+### Dockerfile Tips & Tricks
+#### COPY vs ADD
+Przykład:
+```
+COPY [--chown=<user>:<group>] <src>... <dest>
+COPY --chown=damian /src/app.js /home/app.js
+```
+ADD też kopiuje, ale ma dwie dodatkowe funkcje:
+- Pozwala na kopiowanie plikó bezpośrednio z adresu URL
+- Pozwala na rozpakowanie archiwum bezpośrednio do wskaanego katalogu
+```
+ADD http://example.com/file.png /home
+ADD myfile.tar.gz /home/extracted_myfile
+```
+COPY jest rekomendowane do kopiowania plików
+Jedyne zasadne zastosowanie instrukcji ADD : `ADD rootfs.tar.gz`
+ADD może być niebezpieczne `ADD http://example.com/big.tar.xz /home`
+Zamiast tego użyj RUN & curl `RUN curl -SL https://example.com/big.tar.xz | tar -xJC`
+#### ENTRYPOINT vs CMD
+Oba polecenia pozwalająokreślić na pkt startowy kontenera
+Rekomendowana forma:
+```
+ENTYPOINT ["executable", "param1", "param2"]
+CMD ["executable", "param1", "param2"]
+```
+Przykład:
+```
+ENTYPOINT ["nginx", "-g", "daemon off;"]
+CMD ["nginx", "-g", "daemon off;"]
+```
+Połączenie ENTRYPOINT i CMD
+ENTRYPOINT to funkcja, której argumenty wykonają się zawsze
+```
+ENTRYPOINT ["/bin/echo", "Docker"]
+CMD ["Maestro"]
+```
+W przypadku CMD możemy to nadpisać
+```
+docker container run -it <image>
+docker container run -it <image> Meastro - kurs online
+```
+`ENTRYPOINT` wykona się zawsze, `CMD` można "nadpisać"
+Często stosuje sięobie instrukcje jednocześnie
+Rekomendowana forma w obu przypadkach  to "exec" `ENTRYPOINT ["executable", "param1", "param2"]`
+#### ARG vs ENV
+Instrukcja `ARG` jest dostępna z poziomu budowania obrazu, do momentu kiedy obraz nie zostanei zbudowany to można wykorzystać tą instrukcję.
+W momencie gdy obraz jest zbudowany pojawia nam się instrukcja ENV
+1. Często stosowane razem
+```
+ARG NODE_ENV=production
+ENV NODE_ENV $NODE_ENV
+```
+2. Nie można bezpośrednio zmienić wartości `ENV` podczas budowania obrazu
+```
+docker image build --build-arg NODE_ENV=development ...
+docker container run -e NODE_ENV=development // z parametrem -e można nadpisać wartość
+```
+#### FROM SCRATCH
+Tak pwostają pliki bazowe, ale zawyczaj korzystamy w gotowych obrazów na dockerHub
+Tworzymy obraz od zera https://hub.docker.com/_/scratch
+Przykład Debiana:
+```
+FROM scratch
+ADD rootfs.tar.xz /
+CMD ["bash"]
+```
+
+
