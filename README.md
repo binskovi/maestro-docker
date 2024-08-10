@@ -469,7 +469,7 @@ docker container run -d -p 8082:8080 --name myapp2 myapp:2.0
 manifest - plik konfiguracyjny obrazu
 FAT manifest - zbiór manifestów
 Od wersji Dockera 1.10 warstwy są hashowane za pomocą algorytmu SHA256
-W Docker Registry przechowywane jest archiwum powstałe po skompresowaniu plików danej warstwy
+W Docker Registry przechowywane jest archiwum obrazu powstałe po skompresowaniu plików danej warstwy
 Po pobraniu `docker image pull` archiwum jest rozpakowane
 ```
 docker image pull ubuntu
@@ -605,4 +605,63 @@ ADD rootfs.tar.xz /
 CMD ["bash"]
 ```
 
+### Docker Linter
+Automatyczne dbanie o jakość plików Dockerfile
 
+Weryfikuje składnię plików Dockerfile i pomaga w ich optymalizacji
+Można go uruchomić z poziomu Dockera
+Możłiwość integracji w pipelinach CI / CD (Gitlab, Jenkins, Bitbucket)
+Wtyczka do VSC: Hadolint
+Instalacja dla WSLa:
+```
+sudo wget -O /usr/local/bin/hadolint https://github.com/hadolint/hadolint/releases/latest/download/hadolint-Linux-x86_64
+sudo chmod +x /usr/local/bin/hadolint
+hadolint --version
+hadolint Dockerfile  <- Odpalamy plik do sprawdzenia czy zawiera błędy.
+```
+### Najlepsze praktyki tworzenia Dockerfile
+#### Kontener to pojedyncza usługa / aplikacja
+Zasada SRP - Zalecane jest aby wewnątrz kontenera uruchomiony był jeden główny proces == jedna usługa /aplikacja
+Czasami tworzone są procesy pochodne i to jest ok, przykłą z ngnxa uruchamia master process oraz worker process
+#### Nie wrzucaj frontendu i backendu do tego samego obrazu / kontenera
+(Zdarzają się wyjątki, ale na ogół łątwiej będzie tym zarządzać gdy kontener ma pojedynczą odpowiedizalność)
+#### Dodaj do obrazu tylko to co niezbędne. Nie wrzucaj plików konfiguracyjnych czy plików README
+Jak unikać zbędnych plików? `.dockerignore` wykluczamy to co nie chcemy aby znalazło sięw obrazie.
+```
+.git
+node_modules
+# ignore .md
+!README*.md
+README-secret.md
+# ignore node_modules and all subdirections
+node_modules/
+# ignore Dockerfile & .dockerignore
+Dockerfile
+.dockerignore
+```
+#### Korzystaj z oficjalnych obrazów
+Kiedy nie korzystać z oficjalnych obrazów?
+1. Gdy oficjalny obraz niespełnia naszych wymagań
+2. W oficjalnym obrazie występują krytyczne podatności
+
+#### Tag "latest" to zło
+Unikaj tagu : latest
+- Tag :latest to anty-wzorzec w każdej dziedzinie oprogramowania
+- W każdej chwili obraz pod tagiem :latest może się zmienić
+- Nikt nie zagwarantuje Ci stabilności obrazu z tagiem :latest
+#### Kopiuj pliki do obrazu z "głową"
+COPY ./app  <- zły przykład
+ENTRYPOINT ["dotnet", "aspnetcore-app.dll"]
+
+COPY /target/aspnetcore-app.dll /app  <- dobry przykład
+ENTRYPOINT ["dotnet", "aspnetcore-app.dll"]
+#### Kolejność instrukcji w pliku Dockerfile ma duże znaczenie
+Kod źródłówy powinniśmy na stosie dodawać jak najpóźniej bo on zmienia się najczęściej, inaczej tracimy możliwość skorzystania z mechanizmu cachowania
+#### Załąduj zależności aplikacji najwcześniej jak to możliwe
+np w node, najpierw kopiujemy plik package.json a potem uruchamiamy jego isntalacje
+#### Ogranicz ilość warstw
+Im mniej tym lepiej, ALE nie na siłę. Każda kolejna instrukcja RUN jakby dodaje kolejną warstwę.
+Lepiej stosować jedną instrukcję RUN z && niż wiele osobnych, wtedy zamiast 5 warstw mamy jedną.
+#### Dbaj o jakość swoich Dockerfile i korzystaj z linterów
+np. Hadolint
+#### Stosuj podejście multi-stage builds
