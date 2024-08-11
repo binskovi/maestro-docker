@@ -108,7 +108,7 @@ docker compose down -v  // usuń wszystko, sieć i volumeny.
 docker compose down -v – zatrzyma nam wszystkie kontenery z compose oraz usunie wszystko, co było stworzone na potrzeby ich uruchomienia (np. sieć)
 
 ## Moduł 01 : Podstawy konteneryzacji
-### Historia konteneryzacji
+### 01.01 : Historia konteneryzacji
 Początki roku 2000, twórcy systemu FreeBSD wprowadzili polecenie `Jail` podzielili system na mniejsze niezależne od siebie mniejsze systemy. Dzięki temu była możliwośćizolowania systemu plików, przestrzeni użytkowników czy izolowania sieci. Każdy Jail mógł mieć własny IP i włąsne oprogramowanie, ale aplikacje miały ograniczone funkcjonalności i takie rozwiązanie się nie ostatecznie nie przyjęło.
 W 2004 Solaris Zones, system operacyjny, który działa w kontenerze (zone) ma mo zliwość dostępu do przestrzeni użytkownika, procesów, systemu plików a nawet sprzętu. Dostęp tylko do tego, co znajduje się we własnej strefie.
 Była już możliwe współdzielenie zasobów sprzętowych i działanie bezpośrednio na kernelu hosta.
@@ -117,24 +117,24 @@ W 2008 cgroup zostało włącozne do Linux Kernel, dzięki czemu powstałnowy pr
 Były to pierwsze pełnoprawne kontenery, wykorzystują mechanizm cgroups oraz Linux namespaces, kontener posiada odizolowane drzewo procesów, sieci i przestrzeni dyskowej.
 W 2013 roku narodizny Dockera, zostałzaprezentowany przez założyciela frmy dotCloud. Początkowo wykorzystywał kontenery LXC, dopiero w 2014 roku zastąpił je własnym rozwiązaniem - libcontainer.
 Twórcą Dockera jest Solomon Hykes.
-### Czym jest Docker i dlaczego jest tak popularny
+### 01.02 : Czym jest Docker i dlaczego jest tak popularny
 Docker jest narzędziem do uruchamiania kontenerów, jest to narzędzie Open-Source, pakuje aplikację do kontenera. Można je przenosić na różne systemy operacyjne.
 Głównym zamysłem Dockera jest uruchamianie aplikacji czy usług w kontenerach i wyizolowanie aplikacji niezlaeżnie od tego w jakim systemie się zanjduje. Przycznił się mocno do przyspieszenia wdrażania aplikacji na wiele środowisk.
-### Podstawowe definicje: obraz, kontener, Docker Hub
+### 01.03 : Podstawowe definicje: obraz, kontener, Docker Hub
 Kontener - paczka zawierajaca aplikację i jej zależności, kontenery są od siebie odizolowane
 Różnice Obraz vs Kontener - Obraz to inaczej szablon na jakiej podstawie zostanie stworzony kontener a kontener to jakby działająca instancja obrazu.
 Docker Hub - centralne miejsce przechowujące bazowe obrazy, możemy też tam przechowywać swoje obrazy
-### Aplikacja w kontenerze vs aplikacja w wirtualnej maszynie
+### 01.04 : Aplikacja w kontenerze vs aplikacja w wirtualnej maszynie
 Kontenerowi nie musimy na sztywno przypisywać zasobów sprzętowych, pozwala nam to na uruchomienie znacznie większej ilości kontenerów niż moglibyśmy uruchomić maszyn wirtualnych. Porównanie Domu jako Maszyny wirtualnej która musi mieć wszystko dla siebie na stałe, do mieszkania jako kontenera w bloku gdzie niektóre elementy są współdzielone ale jest zachowana pewna odrębność.
-### Docker na różnych systemach operacyjnych
+### 01.05 : Docker na różnych systemach operacyjnych
 Docker dla Linuxa jest najbardizej stabilny.
 Docker Desktop for Windows
 Docker Desktop for Mac
-### Kontenery Linux i Windows
+### 01.06 : Kontenery Linux i Windows
 Kontenery to linux, Microsoft z czasem wproadził kontenery Windowsowe. Kontenery Linuxowe mogą działać na Windowsie ale nie odwrotnie.
 
 ## Moduł 02 : Uruchamianie kontenerów
-### Pierwszy kontener
+### 02.01 : Pierwszy kontener
 
 Utoworzenie kontenera z nazwie obrazu hello-world
 ```
@@ -165,7 +165,7 @@ Aby wejść do kontenera, czyli wykonaj polecenie na działajacym kontenerze (-i
 ```
 docker container exec -it <nazwa> bash
 ```
-### Uruchamianie usług w kontenerze
+### 02.02 : Uruchamianie usług w kontenerze
 
 Pobranie obrazu jaki określimy
 ```
@@ -202,7 +202,7 @@ Aby wystartować kontener:
 docker container start nginx2
 curl localhost:8081
 ```
-### Czyszczenie środowiska
+### 02.03 Czyszczenie środowiska
 Zatrzymywanie i usuwanie pojedynczych kontenerów
 ```
 docker container stop <id_lub_nazwa_kontenera>
@@ -219,7 +219,7 @@ opcja --force wymusza usunięcie kontenerów, bez tej flagi napierw należy zatr
 ```
 docker container rm $(docker container ls -aq) --force
 ```
-### Container Run Deep Dive
+### 02.04 Container Run Deep Dive
 Co dzieje się po wpisaniu ponizszej instrukcji?
 Na początku sprawdzamy czy obraz istenieje lokalnie, jeśli nie to poszukaj go w zdalnym repozytorium.
 Następnie sprawdza czy obraz istnieje w repozytorium jeśli tak to pobierz go, rozpakuj i zapisz lokalnie
@@ -234,7 +234,7 @@ docker container run -d -p 8080:80 --name mynginx nginx:latest nginx -T
 docker container ls
 docker container logs <id_lub_nazwa_kontenera>
 ```
-### Kontener czyli proces
+### 02.05 Kontener czyli proces
 
 Wewnątrz kontenera działa tylko jeden główny proces, taka jest rekomendacja. Procesy w kontenerze nie różnią się niczym od procesów na hoście (poza metadanymi mówiącymi że jest proces w kontenerze). Procesy kontenera domyślnie są odizolowane od innych procesów na hoście i kontenerów (można to zmienić)
 
@@ -263,7 +263,7 @@ ps -aux | grep mongo
 docker exec -it mymongo bash
 ps -aux   // lista wszystkich procesów
 ```
-### Inspekcja kontenera
+### 02.06 Inspekcja kontenera
 
 Podgląd konfiguracji ontenera, stanu zużycia zasobów oraz przeglądanie logów (docker container inspect, docker container stats, docker container logs)
 Do sprawdzenia konfiguracji kontenera używay polecenia:
@@ -298,7 +298,7 @@ docker container logs <container_name>
 ```
 Możemy podglądać logi na żywo:
 ```
-docker container logs -f <nazwa_kontenera> 
+docker container logs -f <nazwa_kontenera>
 ```
 
 Sprawdzamy stan zużycia zasobów:
@@ -306,7 +306,7 @@ Sprawdzamy stan zużycia zasobów:
 docker container stats <nazwa_kontenera>
 docker container stats --no-stream <nazwa_kontenera>
 ```
-### Uruchamianie usług – poziom 2
+### 02.07 Uruchamianie usług – poziom 2
 Apache
 ```
 docker container run --rm -d --name myapache -p 8000:80 httpd:2.4
@@ -332,14 +332,14 @@ docker container start db
 docker container ls
 ```
 ## Moduł 03 : Praca z obrazami
-### Docker Hub i repozytoria
+### 03.01 Docker Hub i repozytoria
 https://hub.docker.com
 Docker Hub to domyślne miejsce z którym łączy się Docker po wpisaniu komendy `docker image pull`. Możemy tam założyć konto oraz dodawać swoje obrazy publiczne lub prywatne. Oficjalne repo obrazów. Ważne aby zwrócić uwagę czy obraz posiada etykietę Oficialny.
 ```
 docker image pull alpine:3.7
 docker image pull alpine:3.6
 ```
-### Tagowanie i publikowanie obrazów na Docker Hub
+### 03.02 Tagowanie i publikowanie obrazów na Docker Hub
 Aby publikować swoje obrazy musimy stworzyc sobie konto na DockerHub
 Zadanie:
 Dodaj nowy tag do obrazu alpine:3.9
@@ -376,7 +376,7 @@ docker image pull alpine:3.7
 docker image tag alpine:3.7 <TWOJA_NAZWA_UŻYTKOWNIKA>/alpine:3.7
 docker image push alpine:3.7
 ```
-### Prywatne repozytoria
+### 03.03 Prywatne repozytoria
 Rozwiązania płatne
 Docker Hub Pricing https://hub.docker.com/subscription?plan=individual&paid=true
 Azure https://azure.microsoft.com/en-us/pricing/details/container-registry/
@@ -386,7 +386,7 @@ Rozwiązania darmowe
 Canister https://canister.io/
 Gitlab https://docs.gitlab.com/ee/user/packages/container_registry/index.html
 
-### Dockerfile
+### 03.04 Dockerfile
 Utwórz plik o nazwie Dockerfile oraz plik text.txt.
 Zawartość pliku Dockerfile
 ```
@@ -408,7 +408,7 @@ RUN - pozwala na wykonanie dowolnego polecenia dostępnego w obrazie bazowym (ap
 COPY - kopiuje pliki lub katalogi z hosta, do określonej lokalizacji wewnatrz obrazu
 CMD - określa jaka komenda ma zostać wykonana po uruchomieniu kontenera na podstawie obrazu
 
-### Rozszerzenie oficjalnych obrazów
+### 03.05 Rozszerzenie oficjalnych obrazów
 Kopiowanie plików z kontenera
 ```
 docker container run -d --name nginx1 nginx  // uruchomienie
@@ -429,7 +429,7 @@ docker image build -t mynginx .
 docker container run -d -p 8081:80 --name mynginx mynginx:latest
 curl localhost:8081
 ```
-### Budowanie własnego obrazu – czyli konteneryzacja aplikacji
+### 03.06 Budowanie własnego obrazu – czyli konteneryzacja aplikacji
 
 W wersji uproszczenej
 - Znajdujemy obraz bazowy
@@ -465,7 +465,7 @@ Uruchom drugi kontener na podstawie obrazu myapp:2.0
 docker container run -d -p 8082:8080 --name myapp2 myapp:2.0
 ```
 
-### Warstwowa budowa obrazu
+### 03.07 Warstwowa budowa obrazu
 manifest - plik konfiguracyjny obrazu
 FAT manifest - zbiór manifestów
 Od wersji Dockera 1.10 warstwy są hashowane za pomocą algorytmu SHA256
@@ -483,7 +483,7 @@ Narzędzie do przeglądania zawartości warstw obrazów
 docker run --rm -it -v /var/run/docker.sock:/var/run/docker.sock wagoodman/dive:latest ubuntu:latest
 ```
 
-### Multi-stage builds
+### 03.08 Multi-stage builds
 
 Więcej niż jedna instrukcja `FROM`
 Zapewnia spójność niezależnie od lokalizacji gdzie obraz jest budowany (CI/CD vs lokalnie )
@@ -538,7 +538,7 @@ Podgląd konfiguracji obrazu
 ```
 docker image inspect react-dev:latest
 ```
-### Dockerfile Tips & Tricks
+### 03.09 Dockerfile Tips & Tricks
 #### COPY vs ADD
 Przykład:
 ```
@@ -605,7 +605,7 @@ ADD rootfs.tar.xz /
 CMD ["bash"]
 ```
 
-### Docker Linter
+### 03.10 Docker Linter
 Automatyczne dbanie o jakość plików Dockerfile
 
 Weryfikuje składnię plików Dockerfile i pomaga w ich optymalizacji
@@ -619,7 +619,7 @@ sudo chmod +x /usr/local/bin/hadolint
 hadolint --version
 hadolint Dockerfile  <- Odpalamy plik do sprawdzenia czy zawiera błędy.
 ```
-### Najlepsze praktyki tworzenia Dockerfile
+### 03.11 Najlepsze praktyki tworzenia Dockerfile
 #### Kontener to pojedyncza usługa / aplikacja
 Zasada SRP - Zalecane jest aby wewnątrz kontenera uruchomiony był jeden główny proces == jedna usługa /aplikacja
 Czasami tworzone są procesy pochodne i to jest ok, przykłą z ngnxa uruchamia master process oraz worker process
@@ -657,7 +657,7 @@ COPY /target/aspnetcore-app.dll /app  <- dobry przykład
 ENTRYPOINT ["dotnet", "aspnetcore-app.dll"]
 #### Kolejność instrukcji w pliku Dockerfile ma duże znaczenie
 Kod źródłówy powinniśmy na stosie dodawać jak najpóźniej bo on zmienia się najczęściej, inaczej tracimy możliwość skorzystania z mechanizmu cachowania
-#### Załąduj zależności aplikacji najwcześniej jak to możliwe
+#### Załaduj zależności aplikacji najwcześniej jak to możliwe
 np w node, najpierw kopiujemy plik package.json a potem uruchamiamy jego isntalacje
 #### Ogranicz ilość warstw
 Im mniej tym lepiej, ALE nie na siłę. Każda kolejna instrukcja RUN jakby dodaje kolejną warstwę.
@@ -665,3 +665,88 @@ Lepiej stosować jedną instrukcję RUN z && niż wiele osobnych, wtedy zamiast 
 #### Dbaj o jakość swoich Dockerfile i korzystaj z linterów
 np. Hadolint
 #### Stosuj podejście multi-stage builds
+
+## Moduł 04 : Komunikacja pomiędzy kontenerami
+### 04.01 : Sieć typu bridge
+
+#### Sterownik typu bridge
+1. Domyślny typ sterownika seciowego
+2. Najprostszy i najpopularniejszy typ sterownika sieciowego
+3. Służy do komunikacji pomiędzy kontenerami uruchomionymi na tym samym hoście
+4. Dostęp zewnętrzny nadawany jest poprzez mapowanie portów kontenera na port hosta . Przykład: -p 80:80
+
+#### Domyślna sieć bridge
+1. Każdy nowy kontener jest podpinany do sieci o nazwie bridge (dopóki tego nie wyspecjalizujemy)
+2. Kontenery w domyślnej sieci bridge mogą komunikować się tylko po adresie IP (---link jest traktowany jako legacy)
+3. Słabszy poziom izolacji -> wszystkie kontenery są w stanie ze sobą się komunikować
+4. Aby odłączyć kontener od sieci należy go najpierw zatrzymać i ponownie uruchomić z nowymi ustawieniami sieci. 
+
+#### Tworzenie nowych sieci typu bridge
+```
+docker network create -d bridge mybridge
+docker run -d --net mybridge --name db postgres:9.6
+docker run -d --net mybridge -e DB=db -p 8080:3000 --name web mywebapp1.0
+```
+1. Każdy nowy kontener jest podpinany do sieci o nazwie bridge (dopóki tego nie wyspecjalizujemy)
+2. KOntenery mogą komunikowasię po nazwch i aliasach
+3. Lepszy poziom izolacji - tylko kontenery w tej samej sieci sąw stanie się ze sobą komunikować
+4. Kontenery można podłączać i odłączać w dowolnym momencie (bez konieczności zatrzymywania)
+
+Uruchom dwa kontenery o nazwie `ubuntu1` oraz `ubuntu2`
+```
+docker container run -itd --name ubuntu1 ubuntu bash
+docker container run -itd --name ubuntu2 ubuntu bash
+```
+Sprawdź sieć kontenera i odczytaj jego adres IP
+```
+docker container inspect ubuntu1
+```
+Przejdź do terminala kontenera `ubuntu2`
+```
+docker container exec -it ubuntu2 bash
+```
+Zainstaluj ping i spróbuj skomunikować się z kontenerem ubuntu
+```
+apt-get update && apt-get install -y iputils-ping
+ping <wcześniej odczytany adres IP kontenera ubuntu1>
+ping ubuntu1
+exit
+```
+Sprawdź listę sieci kontenerów:
+```
+docker network ls
+```
+Sprawdźmy jakie kontenery należą do sieci domyślnej bridge
+```
+docker network inspect bridge
+```
+#### Tworzenie nowej sieci
+```
+docker network create -d bridge custombridge
+```
+Komunikacja kontenerów w nowej sieci
+```
+docker container run -itd --name ubuntu3 --net custombridge ubuntu bash
+docker container run -itd --name ubuntu4 --net custombridge ubuntu bash
+docker container exec -it ubuntu4 bash
+apt-get update && apt-get install -y iputils-ping
+ping ubuntu3
+ping ubuntu1
+```
+Podłączanie i odłączanie kontenerów
+```
+docker network connect custombridge ubuntu1
+docker network disconnect custombridge ubuntu4
+```
+
+
+
+
+
+
+
+
+
+
+
+
