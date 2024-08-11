@@ -738,11 +738,57 @@ Podłączanie i odłączanie kontenerów
 docker network connect custombridge ubuntu1
 docker network disconnect custombridge ubuntu4
 ```
+### 04.02 : Komunikacja pomiędzy kontenerami – WordPress i MySQL
 
+Utwórz nową sieć typu bridge
+```
+docker network create -d bridge wp
+```
+Uruchom MySQL oraz WordPressa
+```
+docker run -d -p 3306:3306 --name db -e MYSQL_DATABASE=exampledb -e MYSQL_USER=exampleuser -e MYSQL_PASSWORD=examplepass -e MYSQL_RANDOM_ROOT_PASSWORD=1 --network=wp --restart=always mysql:5.7
 
+docker run -d -p 8080:80 -e WORDPRESS_DB_HOST=db:3306 -e WORDPRESS_DB_USER=exampleuser -e WORDPRESS_DB_PASSWORD=examplepass -e WORDPRESS_DB_NAME=exampledb --network=wp --restart=always wordpress:latest
+```
+### 04.03 : Sterownik sieciowy HOST
+- Interfejs sieciowy kontenera NIE jest odizolowany od interfejsu hosta (kontener współdzieli namespace hosta)
+- Kontener nie otrzymuje adresu IP
+- Kontener uruchomiony na porcie 80, z automatu będzie widoczny na porcie 80 adresu hosta
+- Przekeirowanie portów nie dostępne (-p, --publish)
+- Dostępny tylko dla Docker For Linux
 
+```
+docker run -d --name db -e MYSQL_DATABASE=exampledb -e MYSQL_USER=exampleuser -e MYSQL_PASSWORD=examplepass -e MYSQL_RANDOM_ROOT_PASSWORD=1 --network=host mysql:5.7
 
+docker run -d --name wp -e WORDPRESS_DB_HOST=127.0.0.1:3306 -e WORDPRESS_DB_USER=exampleuser -e WORDPRESS_DB_PASSWORD=examplepass -e WORDPRESS_DB_NAME=exampledb --network=host wordpress:latest
+```
+### 04.04 : Sterownik sieciowy MACVLAN
+- Łączy interfejs sieciowy kontenera bezpośrednio do interfejsu sieciowego hosta
+- Kontenery otrzymują adresy IP z zewnętrznej podsieci
+- Adres MAC widoczny dla innych urządzeń w podsieci
+- KOntenery mogą siękomunikować z zewnętrznymi usługami
+- Nie do końca działa dla większości dostawców chmuury
+- Dostępny tylko dla Docker For Linux
 
+Tworzenie sieci typu MACVLAN
+```
+docker network create -d macvlan \
+  --subnet=ADRES_TWOJEJ_PODSIECI \
+  --gateway=BRAMA_DOMYŚLNA \
+  -o parent=eth0 \
+  mymacvlan
+```
+Tworzenie kontenera:
+```
+docker container run -itd --name ubuntu1 --net mymacvlan ubuntu bash
+```
+### 04.05 : Podłączanie kontenerów do sieci innego kontenera
+
+```
+docker network create -d bridge mynet
+docker container run -itd --name ubuntu1 --net mynet ubuntu bash
+docker container run -it --name debian1 --network container:ubuntu1 debian bash
+```
 
 
 
