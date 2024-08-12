@@ -790,9 +790,34 @@ docker container run -itd --name ubuntu1 --net mynet ubuntu bash
 docker container run -it --name debian1 --network container:ubuntu1 debian bash
 ```
 
+## Moduł 05 : Trwałóść danych kontenera
+### 05.01 : Dane kontenera oraz zapisywanie zmian zachodzących w kontenerze
 
+Warstwa do przechowywania danych
+1. Każdy kontener posiada warstwę w ktorej przechowywane sązmiany zachodzące w kontenerze - writeable layer
+2. Warstwa tworzy się automatycznie wraz z tworzeniem kontenera, usuwana po usunięciu kontenera
+3. Jeżeli "nie chcący" usuniemy kontener - wszystkie dane przepadają
 
+Docker commit - słyżu do zapisania stanu
+- Zapisujemy stan kontenera jako obraz
+- Wszystkie zmiany w kontenerze będą dostepne w nowo utworzonym obrazie
+- Składnia: `docker container commit <container_name> <image_name:tag>`
+- Przykład: `docker container commit my_ubuntu myubuntu:1.0`
 
-
-
+```
+docker container run -d -p 8080:80 --name mynginx nginx:latest
+```
+Zmodyfikuj zawartość pliku /usr/share/nginx/html/index.html
+```
+docker container exec -it mynginx bash
+apt-get update && apt-get install -y nano
+nano /usr/share/nginx/html/index.html
+exit
+curl localhost:8080
+```
+Zapisywanie zmian - docker commit
+```
+docker container commit mynginx mynginx:1.0
+docker container run -d -p 8081:80 --name mynginx1 mynginx:1.0
+```
 
