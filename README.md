@@ -820,4 +820,45 @@ Zapisywanie zmian - docker commit
 docker container commit mynginx mynginx:1.0
 docker container run -d -p 8081:80 --name mynginx1 mynginx:1.0
 ```
+### 05.02 : Volumeny
+
+Volumeny:
+1. Zapewniają trwałość danych po usunięciu kontenera
+2. Volumenty są tworzone i w pełni zarządzane przez Dockera
+3. Dane są odizolowane od systemu hosta
+4. Dwa typy volumenów 
+   - Domyślne (w Dockerze) `VOLUME /var/lib/postgresql/data`
+   - Nazwane `docker volume create <volume_name>`
+
+Uruchom PostgreSQL z domyślnym volumenem
+
+```
+docker container run -d -p 5432:5432 -e POSTGRES_PASSWORD=test123 --name db postgres:9.6
+```
+Uruchom PostgreSQL z nazwanym volumenem
+```
+docker container run -d -p 5433:5432 -e POSTGRES_PASSWORD=test12 --name db1 -v db1-data:/var/lib/postgresql/data postgres:9.6
+```
+`docker volume inspect db1-data`
+`docker container rm db1 --force` <- zatryzmanie i usunięcie kontenera
+Sprawdź różnicę
+```
+docker volume ls
+```
+Po usunięciu kontenera volume (dane) powinien zostać, możemy wyczyścić dane poleceniem:
+```
+docker volume prune
+```
+
+
+
+
+
+
+
+
+
+
+
+
 
