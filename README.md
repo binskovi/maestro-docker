@@ -849,8 +849,23 @@ Po usunięciu kontenera volume (dane) powinien zostać, możemy wyczyścić dane
 ```
 docker volume prune
 ```
+### 05.03 : Współdzielenie volmenów
 
+Współdzielenie danych
+- Czasami istnieje potrzeba współdzielenia danych pomiędzy kontenerami, ale należy podchodzićdo tego ostrożnie.
+- Jedna z opcji to współdzielenie volumenów
+  a. Pełne prawa (modyfikacja)
+  b. Dostęp tylko do odczytu
 
+```
+docker volume create myvolume1
+docker run -it --name=u1 -v myvolume1:/myvolume1 ubuntu
+docker run -it --name=u2 --volumes-from u1 ubuntu   // będzie miałprawo odczytu i modyfikowania z volumenu u1
+```
+Współdzielenie danych w trybie readonly
+```
+docker run -it --name=u3 --volumes-from u1:ro ubuntu    // :ro -> read only
+```
 
 
 
