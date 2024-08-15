@@ -867,13 +867,80 @@ Współdzielenie danych w trybie readonly
 docker run -it --name=u3 --volumes-from u1:ro ubuntu    // :ro -> read only
 ```
 
+### 05.04: Bind Mounts
 
+Podmontowywanie katalogów/plików na hoście do katalogów/plików wewnątrz kontenera
 
+Korzyść z tego jest taka, że każda zmiana plikó na hoście od razu jest widoczna w kontenerze.
 
+1. Alternatywa dla volumenów
+2. Fizyczny plik lub katalog na dysku hosta jest podmontowany do kontenera
+3. Podmontowując katalog do kontenera, mamy możliwość zarządzania nim: modyfikowanie, usuwanie, tworzenia plików (ryzyko bezpieczeńśtwa)
+4. Brak możliwości tworzenia Bind Mounts z poziomu Docker CLI
 
+PostgreSQL
+```
+sudo mkdir -p /var/db/pgdata <- tworzymy katalog
+// Za pomocą parametru -v wskazujemy ten katalog czyli katalog lokalny : katalog znajdujacy się w kontenerze
+docker container run -d -p 5432:5432 --name db -e POSTGRES_PASSWORD=test12 -v /var/db/pgdata:/var/lib/postgresql/data postgres:9.6
+```
+Podmontowanie plików i edycja z poziomu hosta
+Sklonuj repozytorium i przejdź do katalogu first_app_in_docker
+```
+git clone https://github.com/dnaprawa/first_app_in_docker
+cd ~/first_app_in_docker
+```
+Uruchomienie kontenera:
+```
+docker container run -d -p 8080:80 --name first_app_container --mount type=bind,source="$(pwd)",target=/usr/share/nginx/html first_app_in_docker:1.0
+```
+Zamiana plików
+```
+cp index_changed.html index.html
+```
+05.05: Zadanie:
+1. Stworzyć volumen mysqldata
+2. Uruchomić bazę danych MySQL w wersji 5.6.47
+    a. Przekazać zmienną środowiskową -e MYSQL_RANDOM_ROOT_PASSWORD=yes
+    b. Odczytać hasło ROOT’a z logów (GENERATED ROOT PASSWORD)
+    c. Podmontować volumen mysqldata do katalogu /var/lib/mysql kontenera
+3. Usunąć kontener i uruchomić nowy, ale w wersji 5.6.48 + korzystając z volumena mysqldata
+4. Upewnij się że kontener działa (sprawdź logi)
+5. Wykonać dump bazy danych (docker exec + mysqldump)
 
+-d // działanie w tle
+-v // podmontowujemy volumen
 
+```
+docker volume create mysqldata
+docker image pull mysql:5.6.47
+docker run -d --name db -e MYSQL_RANDOM_ROOT_PASSWORD=yes -v mysqldata:/var/lib/mysql mysql:5.6.47
+docker container logs db  // szukamy hasła w logach i kopiujemy z fragmentu (GENERATE ROOT PASSWORD:)
 
+docker container rm db --force
+docker volume ls <- sprawdźmy czy volume istnieje
 
+docker run -d --name db2 -e MYSQL_RANDOM_ROOT_PASSWORD=yes -v  mysqldata:/var/lib/mysql mysql:5.6.48
+docker container logs db2
+```
+WAŻNE: Pamiętaj, by odczytać hasło do bazy z logów i ustawić jego wartość do zmiennej środowiskowej MYSQL_ROOT_PASSWORD.
+Dump bazy danych:
+```
+docker container exec db2 sh -c 'exec mysqldump --all-databases -u root -p "$MYSQL_ROOT_PASSWORD"' > /<YOUR_PATH_HERE>/all-db.sql
+```
 
+### 06.01: Wprowadzenie do docker-compose
+1. Konfiguracja zależności między kontenerami
+2. Zapisuje naszą konfigurację do pliku
+3. Za pomocą jednego polecenia możemy uruchomić cały projekt
+    a. YAML - typ pliku
+    b. COMPOSE - (compose format) - składnia, w której definiujemy zachowanie Kontenerów, Seici, Volumenów
+    c. Docker Compose - narzędzie CLI do uruchamiania kontenerów na podstawie pliku YAML (wbudowany w Docker Desktop, osobne narzędzie dla Docker For Linux: trzeba doinstalować)
 
+    Docker Compose
+    1. Compose - wersje 1,2, 2.1, 3 ... 3.8  https://docs.docker.com/compose/compose-file/
+    2. Kontenery mogą sięze sobą komunikować
+      a. podczas uruchomienia tworzona jest nowa sieć typu bridge
+      b. Wszystkie kontenery automatycznie dodawane są do jednej sieci
+    3. Compose kompatybilny z Docker Swarm
+    4. domyślna nazwa pliku YAML to `docker-compose.yml`, ale może być zmienionwa: `docker-compose -f docker-compose.dev.yml`
