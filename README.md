@@ -944,3 +944,108 @@ docker container exec db2 sh -c 'exec mysqldump --all-databases -u root -p "$MYS
       b. Wszystkie kontenery automatycznie dodawane są do jednej sieci
     3. Compose kompatybilny z Docker Swarm
     4. domyślna nazwa pliku YAML to `docker-compose.yml`, ale może być zmienionwa: `docker-compose -f docker-compose.dev.yml`
+
+opis docker-compose
+```
+version: '3.9'
+
+services:
+  servicename: # WYMAGANE: dowolna nazwa ustalona przez Ciebie
+    image: # OPCJONALNE: może być pominięty gdy korzystamy z "build"
+    container_name: # OPCJONALNE: wymuszamy nazwę kontenera.
+    command: # OPCJONALNE: możemy zastąpić CMD z Dockerfile
+    ports: # OPCJONALNE: mapujemy porty - przekeiorwnaie ruchu z kontenera na host
+    environment: # OPCJONALNE: zmienne środowiskowe. przykład: "-e MY_SQL_PASSWORD=1"
+    volumes: # OPCJONALNE: odpowiednik "-v" w docker container run, podjemy referncje do wcześniej zdefiniowanego volumenu
+  servicename-2:
+    image: # OPCJONALNE: może być pominięty gdy korzystamy z "build"
+    restart: # OPCJONALNE: określamy politykę restartów
+
+volumes: # OPCJONALNE // muszą być zdefuniowane także osobno
+
+networks: # OPCJONALNE  jeśli nie stworzymy sieci to docker samoistnie to zrobi
+```
+Przykład:
+```
+version: "3.7"
+
+# odpowiednik w CLI
+# docker volume create nginx-volume
+# docker container run -p 8080:80 \
+# -v nginx-volume:/usr/share/nginx/html \
+# --name nginx1 nginx:1.17
+
+services:
+  mynginx:
+    image: nginx:1.17
+    container_name: nginx1
+    ports:
+      - 8080:80
+    volumes:
+      - nginx-volume:/usr/share/nginx/html   # podłączamy ścieżkę gdzie mają być zapisywane pliki, nazwa jak odgórna nginx-volume
+
+volumes:
+  nginx-volume:
+    name: nginx-volume
+```
+
+
+
+docker-compose.yml
+```
+version: '3.7'
+
+services:
+
+  mywordpress:
+    image: wordpress
+    restart: always
+    ports:
+      - 9012:80
+    environment:
+      WORDPRESS_DB_HOST: db:3306   // nazwę bazy podajemy z kontenera niżej: czyli 'db:'
+      WORDPRESS_DB_USER: db_user
+      WORDPRESS_DB_PASSWORD: db_password
+      WORDPRESS_DB_NAME: Wordpress
+    volumes:
+      - wordpress-volume:/var/www/html
+  db:
+    image: mysql:5.7
+    restart: always
+    environment:
+      MYSQL_DATABASE: Wordpress
+      MYSQL_USER: db_user
+      MYSQL_PASSWORD: db_password
+      MYSQL_RANDOM_ROOT_PASSWORD: '1'
+    volumes:
+      - db-vol:/var/lib/mysql
+
+volumes:
+  wordpress-volume:
+  db-vol:
+
+// Odzwierciedlenie w CLI tego co powyzej.
+# docker network create -d bridge wp   // tworzymy nową sieć
+
+# docker run -d --name db -e MYSQL_DATABASE=Wordpress  \
+# -e MYSQL_USER=db_user -e MYSQL_PASSWORD=db_password -e MYSQL_RANDOM_ROOT_PASSWORD=1
+# --network=wp --restart=always mysql:5.7
+
+# docker run -d -p 9012:80 -e WORDPRESS_DB_HOST=db:3306 -e WORDPRESS_DB_USER=db_user \
+# -e WORDPRESS_DB_PASSWORD=db_password -e WORDPRESS_DB_NAME=Wordpress --network=wp \
+# --restart=always wordpress:latest
+```
+
+Uruchomienie za pomocą docker-compose
+```
+docker-compose up <- Stara komenda
+docker compose up
+docker compose up -d // Uruchamiamy w tle
+docker compose down // powoduje zatrzymanie kontenerów, nie usuwa volumenów
+docker volume ls  // pokazuje zapisane volumeny
+docker compose down -v  // usuwa kontenery wraz z ich volumenami
+docker compose top  // pokazuje co się dzieje wewnatrz naszych kontenerów
+docker compose --help  // poakzuje wszystkie dostępne komendy
+docker compose stop db  // zatryzmanie konkrentego kontenera
+docker compose start db  // ponowne uruchomienie zastopowanego kontenera
+```
