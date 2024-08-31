@@ -1439,3 +1439,175 @@ docker-compose build
 docker-compose config
 docker-compose up -d
 ```
+
+### 06.03: Zmienne środowiskowe
+
+1. W pliku .env możemy współdzielić zmienne a ich zawartość zostanie podstawiona w docker-compose.yml
+2. Przykład:
+   Wpis `DB_PASSWORD=test123` pliku .env
+   Wpis `${DB_PASSWORD}` w pliku docker-compose.yml
+3. Pliki .env służą tylko do podstawiania wartości w docker-compose.yml i nie mają nic współnego z ENV w Dockerfile oraz "-e" w terminalu
+
+Plik .env
+1. Zmienne środowiskowe hosta mają wyższy priorytet niż wpisy w pliku .env
+2. Zmienne środowiskowe w terminalu mają najwyższy priorytet (nadpisują zarówno .env jak i zmienne środowiskoe hosta)
+
+Przykład:
+
+Plik docker-cpomose.yml
+```
+version: "3.7"
+
+services:
+  mywordpress:
+    image: wordpress
+    restart: always
+    ports:
+      - ${WP_PORT}:80
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_USER: ${DB_USER}
+      WORDPRESS_DB_PASSWORD: ${DB_PASSWORD}
+      WORDPRESS_DB_NAME: ${DB_NAME}
+    volumes:
+      - wordpress-volume:/var/www/html
+  db:
+    image: mysql:5.7
+    restart: always
+    environment:
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_RANDOM_ROOT_PASSWORD: "1"
+    volumes:
+      - db-vol:/var/lib/mysql
+
+volumes:
+  wordpress-volume:
+  db-vol:
+```
+
+Plik .env
+```
+DB_USER=myuser
+DB_PASSWORD=mypassword
+DB_NAME=mywordpress
+WP_PORT=9099
+```
+
+Komenda zwracajaca całą konfigurację:
+```
+docker-compose config
+```
+Mogę zmienić, nadpisać wartość zmiennej poprzez cli:
+```
+Windows Powershell: $Env:DB_NAME="FromPowershellDbName"
+Linux: export DB_NAME=FromPowershellDbName
+```
+
+Zmienne środowiskowe - env_file
+1. Dodatkowy wpis `env_file: my_env_file` w pliku YAML
+2. Wpliku `my_env_file` wpisy według schematu klucz=wartość
+3. Przekazywanie zmiennych bezpośrednio do kontenera
+4. Srawdza się w pracy w zespole
+   - `my_env_file` może być dodany do ignorowania plików w kontroli wersji
+   - każda osoba może mieć swoje ustawienia: portów, nazw itp.
+
+Plik docker-compose z odwołaniem do indywidualnego pliku .env
+
+```
+version: "3.7"
+
+services:
+  mywordpress:
+    image: wordpress
+    restart: always
+    ports:
+      - 9012:80
+    env_file: wordpress_env_file
+    volumes:
+      - wordpress-volume:/var/www/html
+  db:
+    image: mysql:5.7
+    restart: always
+    env_file: mysql_env_file
+    volumes:
+      - db-vol:/var/lib/mysql
+
+volumes:
+  wordpress-volume:
+  db-vol:
+```
+Zmienne środowiskowe wewnątrz pliku mysql_env_file:
+```
+MYSQL_DATABASE=mywordpress
+MYSQL_USER=myuser
+MYSQL_PASSWORD=mypassword
+MYSQL_RANDOM_ROOT_PASSWORD=1
+```
+Aby zerknąć na konfigurację pliku z niestandardową nazwą i uruchomić:
+```
+docker-compose -f .\docker-compose.envfile.yml config
+docker-compose -f .\docker-compose.envfile.yml up -d
+```
+
+### 06.04: Wiele instancji na podstawie tego samego pliku YAML
+
+* Problem: mamy tylko jeden serwer, a chcemy uruchomić więcej niż jedną instancję aplikacji z poziomu docker-compose
+  - jedna instancja "developerska"
+  - Druga instancja "dla testerów manualnych"
+  - Trzecia instancja "dla klienta"
+* Co nas blokuje?
+  - nazwy automatycznie tworoznych kontenerów, volumenów, sieci
+  - konfikt otwartych portów
+* Rozwiązanie:
+  - mechanizm podstawiania ${VARIABLE}
+  - określenia nazwy projektu podczas uruchamiania `docker-compose -p <project_name>`
+* Nie ma problemu z CI/CD (określamy tylko zmienną środowiskową)
+* Mamy uruchomione kilka instancji na jednym serwerze / wirtualnej maszynie
+
+```
+version: '3.7'
+
+services:
+  mywordpress:
+    image: wordpress
+    restart: always
+    ports:
+      - ${WP_PORT}:80
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_USER: db_user
+      WORDPRESS_DB_PASSWORD: db_password
+      WORDPRESS_DB_NAME: Wordpress
+    volumes:
+      - wordpress-volume:/var/www/html
+  db:
+    image: mysql:5.7
+    restart: always
+    environment:
+      MYSQL_DATABASE: Wordpress
+      MYSQL_USER: db_user
+      MYSQL_PASSWORD: db_password
+      MYSQL_RANDOM_ROOT_PASSWORD: '1'
+    volumes:
+      - db-vol:/var/lib/mysql
+
+volumes:
+  wordpress-volume:
+  db-vol:
+```
+
+Dodaj zmienną środowiskową o nazwie WP_PORT
+```
+Windows Powershell: $Env:WP_PORT="9091"
+Linux: export WP_PORT=9091
+
+docker-compose -p dev up -d
+```
+Drugi projekt:
+```
+export WP_PORT=9092
+docker-compose -p staging up -d
+```
+
