@@ -1610,4 +1610,70 @@ Drugi projekt:
 export WP_PORT=9092
 docker-compose -p staging up -d
 ```
+Zatrzymanie kontenerów:
+```
+docker-compose -p staging down
+```
+### 06.05 Łączenie plików docker-compose.yml
 
+PROBLEM:
+Chcemy mieć różną konfigurację dla różnych środowisk.
+Przykład 1: na potrzeby dev chcę otworzyć porty kontenera DB, a w wersji prod już nie
+Przykład 2: w wersji Prod, chcę aby kontener był automatycznie uruchamiany po restarcie Docker Engine
+
+Rozwiazanie:
+- Kilka plików YAML, które są łączone podczas `docker-compose up`
+- Plik główny `docker-compose.yml` - określa cechy wspólne np. obraz
+- Pliki `docker-compose.dev.yml` - oraz `docker-compose.prod.yml` zawierają dodatkową konfigurację
+- Wywołujemy zgodnie z kolejnością:
+
+```
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+```
+
+```
+docker-compose -f docker-compose.yml -f docker-compose.prod.yml up
+```
+
+DEV:
+```
+version: "3.7"
+
+services:
+  vault:
+    ports:
+      - 8200:8200
+    environment:
+      - VAULT_ADDR=http://127.0.0.1:8200
+      - VAULT_DEV_ROOT_TOKEN_ID=00000000-0000-0000-0000-000000000000
+    volumes:
+      - vaultdata:/vault
+
+volumes:
+  vaultdata:
+```
+
+PROD:
+```
+version: "3.7"
+
+services:
+  vault:
+    environment:
+      - VAULT_ADDR=http://127.0.0.1:8200
+    volumes:
+      - "/var/vault/logs:/vault/logs"
+      - "/var/vault/file:/vault/file"
+      - "/var/vault/config:/vault/config"
+    entrypoint: vault server -config=vault.json
+```
+
+docker-compose.yml
+```
+version: '3.7'
+
+services:
+  vault:
+    image: vault:1.3.2
+  
+```
