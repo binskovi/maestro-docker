@@ -1677,3 +1677,79 @@ services:
     image: vault:1.3.2
   
 ```
+
+### 06.05A Kolejność startu kontenerów oraz czekanie na uruchomienie usługi
+PROBLEM: Chcemy określić kolejność startu kontenerów
+
+Przykład 1: chce, by najpierw została uruchomiona baza danych, a dopiero później moja apka, która łączy sięz tą bazą
+Przykład 2: chcę, by najpierw został uruchomiony backend, a dopiero później frontend
+
+Jak działa `depends_on` ?
+- Określa kolejność startu kontenera
+- Możemy określić wiele zależności
+  depends_on
+   - db
+   - elasticsearch
+
+! Weryfikowany jest tylko stan procesu, a nie stan usługi, czasem inicjalizacja pojektu trwa dłużej.
+
+Przykład: Jeżeli proces bazy danych wystartuje, to nie oznacza to, że jest ona gotowa na przyjmowanie połączeń
+ - Kontener z bazą danych będzie mieć stan `Up`, a sama baza nie będzie gotowa na przyjmowanie połączeń.
+
+Jak wymusić zaczekanie na PEŁNĄ inicjalizację usługi
+Opcja 1:
+- Wraz z `depends_on`, ustawić `restart:always`
+- jeżeli usługa (np. baza danych) nie będzie gotowa na przyjmowanie połączeń, kontener z aplikacją zostanie zatrzymany, a następnie będzie uruchamiancy ponownie, do mementu aż uda się nawiązać połączenie.
+
+Opcha 2:
+- Dodanie healthcheck do usługi na którą 'czekamy'
+- Zastosowanie `depends_on` wraz z `condition: service_healthy`
+
+Opcja 3:
+- jeżeli to możłiwe, dodajemy obsługę błędów połączenia z zewnętrznymi usługami w aplikacji
+
+docker-compose-service_healthly.yml:
+```
+docker-compose -f docker-compose-service_healthly.yml up -d
+```
+
+```
+version: '3.7'
+
+services:
+  mywordpress:
+    image: wordpress:5.7
+    restart: always
+    ports:
+      - 9012:80
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_USER: db_user
+      WORDPRESS_DB_PASSWORD: db_password
+      WORDPRESS_DB_NAME: Wordpress
+    depends_on:
+      db:
+         condition: service_healthy
+    volumes:
+      - wordpress-volume:/var/www/html
+  db:
+    image: mysql:5.7
+    restart: always
+    environment:
+      MYSQL_DATABASE: Wordpress
+      MYSQL_USER: db_user
+      MYSQL_PASSWORD: db_password
+      MYSQL_RANDOM_ROOT_PASSWORD: '1'
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "--silent"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+    volumes:
+      - db-vol:/var/lib/mysql
+
+volumes:
+  wordpress-volume:
+  db-vol:
+
+```
