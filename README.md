@@ -1900,3 +1900,43 @@ volumes:
   elasticdata:
 
 ```
+
+### 06.06: Zewnętrzna sieć
+Problem: Może zajśćpotrzeba rozdzielenia procesu uruchamiania poszczegółnych usług/komponentów systemu
+- rozdzielenia usług/kontenerów systemu na osobne pliki docker-compose
+- pojedyncze kontenery mogące komunikować się z innymi usługami (np. do debugowania)
+```
+docker network create -d bridge --attachable myproject-external-network
+docker-compose -f docker-compose.vault.yml up -d
+```
+
+```
+docker container run -it --net myproject-external-network ubuntu bash
+apt-get update && apt-get install -y iputils-ping
+ping vault
+```
+
+
+
+```
+version: "3.7"
+
+services:
+  vault:
+    image: vault:1.3.2
+    ports:
+      - 8200:8200
+    environment:
+      - VAULT_ADDR=http://127.0.0.1:8200
+      - VAULT_DEV_ROOT_TOKEN_ID=00000000-0000-0000-0000-000000000000
+    volumes:
+      - vaultdata:/vault
+
+volumes:
+  vaultdata:
+
+networks:
+  default:
+    external: true
+    name: myproject-external-network
+```
