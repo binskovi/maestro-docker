@@ -1905,6 +1905,8 @@ volumes:
 Problem: Może zajśćpotrzeba rozdzielenia procesu uruchamiania poszczegółnych usług/komponentów systemu
 - rozdzielenia usług/kontenerów systemu na osobne pliki docker-compose
 - pojedyncze kontenery mogące komunikować się z innymi usługami (np. do debugowania)
+
+Tworzenie sieci i uruchamianie kontenera:
 ```
 docker network create -d bridge --attachable myproject-external-network
 docker-compose -f docker-compose.vault.yml up -d
@@ -1940,3 +1942,41 @@ networks:
     external: true
     name: myproject-external-network
 ```
+
+
+### 06.07: Tworzenie docker-compose.yml na podstawie docker run
+Transformacja docker run na YAML
+
+PROBLEM: mam przygotowanych kilka poleceń Docker CLI, chce je przenieść na docker-compose
+Narzędzie composerize
+- Open-source https://github.com/magicmark/composerize
+- Transformuje polecenia na YAML
+- Instalacja za pomocą NPM
+
+```
+node --version
+npm install composerize -g
+```
+```
+composerize docker run -p 80:80 --restart always --name composerize-nginx nginx:1.17
+```
+```
+composerize docker run -d -p 3306:3306 --name db \
+    -e MYSQL_DATABASE=exampledb \
+    -e MYSQL_USER=exampleuser \
+    -e MYSQL_PASSWORD=examplepass
+    -e MYSQL_RANDOM_ROOT_PASSWORD=1 \
+    --network=wp --restart=always mysql:5.7
+
+composerize docker run -d -p 8080:80 \
+    -e WORDPRESS_DB_HOST=db:3306 \
+    -e WORDPRESS_DB_USER=exampleuser \
+    -e WORDPRESS_DB_PASSWORD=examplepass \
+    -e WORDPRESS_DB_NAME=exampledb \
+    --network=wp --restart=always \
+    wordpress:latest
+```
+
+### 06.08: Przykłady docker-compose
+
+https://github.com/docker/awesome-compose
